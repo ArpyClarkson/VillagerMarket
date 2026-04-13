@@ -554,10 +554,32 @@ public class ShopItem {
             return m.getDisplayName();
         } else if (plugin.getLocalizedMaterial(i.getType().name()) != null) {
             return plugin.getLocalizedMaterial(i.getType().name());
-        } else if (m != null && VersionUtils.getMCVersion() > 11 && m.hasLocalizedName()) {
-            return m.getLocalizedName();
         } else {
-            return i.getType().name().replaceAll("_", " ");
+            String localizedName = getLocalizedNameSafely(m);
+            if (localizedName != null && !localizedName.isEmpty()) {
+                return localizedName;
+            }
+            return i.getType().name().replace("_", " ");
+        }
+    }
+
+    private String getLocalizedNameSafely(ItemMeta itemMeta) {
+        if (itemMeta == null || VersionUtils.getMCVersion() <= 11) {
+            return null;
+        }
+
+        try {
+            java.lang.reflect.Method hasLocalizedName = itemMeta.getClass().getMethod("hasLocalizedName");
+            Object hasName = hasLocalizedName.invoke(itemMeta);
+            if (!(hasName instanceof Boolean) || !((Boolean) hasName)) {
+                return null;
+            }
+
+            java.lang.reflect.Method getLocalizedName = itemMeta.getClass().getMethod("getLocalizedName");
+            Object localizedName = getLocalizedName.invoke(itemMeta);
+            return localizedName instanceof String ? (String) localizedName : null;
+        } catch (ReflectiveOperationException ignored) {
+            return null;
         }
     }
 }
