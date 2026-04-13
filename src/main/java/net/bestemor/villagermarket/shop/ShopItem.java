@@ -24,6 +24,8 @@ import java.util.*;
 import static net.bestemor.villagermarket.shop.ItemMode.*;
 
 public class ShopItem {
+    private static final java.lang.reflect.Method HAS_LOCALIZED_NAME_METHOD = findItemMetaMethod("hasLocalizedName");
+    private static final java.lang.reflect.Method GET_LOCALIZED_NAME_METHOD = findItemMetaMethod("getLocalizedName");
 
     public enum LimitMode {
         SERVER,
@@ -568,17 +570,27 @@ public class ShopItem {
             return null;
         }
 
+        if (HAS_LOCALIZED_NAME_METHOD == null || GET_LOCALIZED_NAME_METHOD == null) {
+            return null;
+        }
+
         try {
-            java.lang.reflect.Method hasLocalizedName = itemMeta.getClass().getMethod("hasLocalizedName");
-            Object hasName = hasLocalizedName.invoke(itemMeta);
+            Object hasName = HAS_LOCALIZED_NAME_METHOD.invoke(itemMeta);
             if (!(hasName instanceof Boolean) || !((Boolean) hasName)) {
                 return null;
             }
 
-            java.lang.reflect.Method getLocalizedName = itemMeta.getClass().getMethod("getLocalizedName");
-            Object localizedName = getLocalizedName.invoke(itemMeta);
+            Object localizedName = GET_LOCALIZED_NAME_METHOD.invoke(itemMeta);
             return localizedName instanceof String ? (String) localizedName : null;
         } catch (ReflectiveOperationException ignored) {
+            return null;
+        }
+    }
+
+    private static java.lang.reflect.Method findItemMetaMethod(String method) {
+        try {
+            return ItemMeta.class.getMethod(method);
+        } catch (NoSuchMethodException ignored) {
             return null;
         }
     }
