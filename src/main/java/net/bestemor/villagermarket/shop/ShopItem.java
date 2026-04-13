@@ -561,7 +561,7 @@ public class ShopItem {
             if (localizedName != null && !localizedName.isEmpty()) {
                 return localizedName;
             }
-            return i.getType().name().replace("_", " ");
+            return i.getType().name().replaceAll("_", " ");
         }
     }
 
@@ -587,9 +587,9 @@ public class ShopItem {
         }
     }
 
-    private static java.lang.reflect.Method findItemMetaMethod(String method) {
+    private static java.lang.reflect.Method findItemMetaMethod(String methodName) {
         try {
-            return ItemMeta.class.getMethod(method);
+            return ItemMeta.class.getMethod(methodName);
         } catch (NoSuchMethodException ignored) {
             return null;
         }
