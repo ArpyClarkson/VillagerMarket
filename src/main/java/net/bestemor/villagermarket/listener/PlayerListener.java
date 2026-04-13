@@ -127,7 +127,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onItemClick(PlayerInteractEvent event) {
         Player player = event.getPlayer();
-        ItemStack itemStack = player.getInventory().getItemInHand();
+        ItemStack itemStack = player.getInventory().getItemInMainHand();
         if (itemStack.getItemMeta() == null || event.getClickedBlock() == null
                 || event.getAction() == Action.LEFT_CLICK_AIR
                 || event.getAction() == Action.LEFT_CLICK_BLOCK
@@ -283,7 +283,7 @@ public class PlayerListener implements Listener {
         if (itemStack.getAmount() > 1) {
             itemStack.setAmount(itemStack.getAmount() - 1);
         } else {
-            player.setItemInHand(null);
+            player.getInventory().setItemInMainHand(null);
         }
     }
 

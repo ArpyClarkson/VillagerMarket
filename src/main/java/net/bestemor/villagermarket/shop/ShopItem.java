@@ -24,6 +24,8 @@ import java.util.*;
 import static net.bestemor.villagermarket.shop.ItemMode.*;
 
 public class ShopItem {
+    private static final java.lang.reflect.Method HAS_LOCALIZED_NAME_METHOD = findItemMetaMethod("hasLocalizedName");
+    private static final java.lang.reflect.Method GET_LOCALIZED_NAME_METHOD = findItemMetaMethod("getLocalizedName");
 
     public enum LimitMode {
         SERVER,
@@ -554,10 +556,42 @@ public class ShopItem {
             return m.getDisplayName();
         } else if (plugin.getLocalizedMaterial(i.getType().name()) != null) {
             return plugin.getLocalizedMaterial(i.getType().name());
-        } else if (m != null && VersionUtils.getMCVersion() > 11 && m.hasLocalizedName()) {
-            return m.getLocalizedName();
         } else {
+            String localizedName = getLocalizedNameSafely(m);
+            if (localizedName != null && !localizedName.isEmpty()) {
+                return localizedName;
+            }
             return i.getType().name().replaceAll("_", " ");
+        }
+    }
+
+    private String getLocalizedNameSafely(ItemMeta itemMeta) {
+        if (itemMeta == null || VersionUtils.getMCVersion() <= 11) {
+            return null;
+        }
+
+        if (HAS_LOCALIZED_NAME_METHOD == null || GET_LOCALIZED_NAME_METHOD == null) {
+            return null;
+        }
+
+        try {
+            Object hasName = HAS_LOCALIZED_NAME_METHOD.invoke(itemMeta);
+            if (!(hasName instanceof Boolean) || !((Boolean) hasName)) {
+                return null;
+            }
+
+            Object localizedName = GET_LOCALIZED_NAME_METHOD.invoke(itemMeta);
+            return localizedName instanceof String ? (String) localizedName : null;
+        } catch (ReflectiveOperationException ignored) {
+            return null;
+        }
+    }
+
+    private static java.lang.reflect.Method findItemMetaMethod(String methodName) {
+        try {
+            return ItemMeta.class.getMethod(methodName);
+        } catch (NoSuchMethodException ignored) {
+            return null;
         }
     }
 }
